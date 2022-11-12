@@ -3,6 +3,7 @@ package projet;
 import com.opencsv.CSVWriter;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.algebra.In;
+import qengine.program.RDFHandler;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,8 +18,9 @@ public class DictionnayParser {
 
     private Map<Integer,String> dictionnaire;
     private Map<String,Integer> dictionnaireInverse;
-    private RDFParser rdfParser ;
+    private RDFHandler rdfHandler ;
     private final String baseURI = null;
+    private Index index =new Index();
 
     /**
      * Votre répertoire de travail où vont se trouver les fichiers à lire
@@ -38,13 +40,13 @@ public class DictionnayParser {
     public DictionnayParser(){
         this.dictionnaire =  new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
-        this.rdfParser =new RDFParser(this.dataFile);
+        this.rdfHandler =new RDFHandler();
 
     }
 
 
     public void createDictionnay() throws IOException {
-        List<Statement> statementList = rdfParser.parseData();
+        List<Statement> statementList = rdfHandler.parseData(dataFile);
         int max;
         for (Statement st:statementList) {
             if (this.dictionnaire.isEmpty()){
@@ -80,41 +82,22 @@ public class DictionnayParser {
         for (Integer integer: dictionnaire.keySet()) {
             String key = integer.toString();
             String value = dictionnaire.get(integer).toString();
-            System.out.println("("+key + "," + value+")");
+            //System.out.println("("+key + "," + value+")");
         }
         for (String  str: dictionnaireInverse.keySet()) {
             String key = str.toString();
             String value = dictionnaireInverse.get(str).toString();
-            System.out.println("("+key + "," + value+")");
+          //  System.out.println("("+key + "," + value+")");
         }
     }
 
 
-    public  void writeCsv(String filePath)
-    {
-        File file = new File(filePath);
-        try {
-            FileWriter outputfile = new FileWriter(file);
-            String line="";
-            List<Statement> statementList = rdfParser.parseData();
-            for (Statement st:statementList) {
-                line = "("+this.dictionnaireInverse.get(st.getSubject().toString())+","+this.dictionnaireInverse.get(st.getPredicate().toString())+","
-                        +this.dictionnaireInverse.get(st.getObject().toString())+")"+"\n";
-                outputfile.write(line);
-            }
 
-            // closing writer connection
-            outputfile.close();
-        }
-        catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
 
     public void hexastore(String filePath) throws IOException {
         String line="";
-        List<Statement> statementList = rdfParser.parseData();
+        List<Statement> statementList = rdfHandler.parseData(dataFile);
+        System.out.println(statementList.size());
         try {
             File spo = new File(filePath+"/spo");
             File pso = new File(filePath+"/pso");
@@ -133,6 +116,10 @@ public class DictionnayParser {
                         this.dictionnaireInverse.get(st.getPredicate().toString())+","
                         +this.dictionnaireInverse.get(st.getObject().toString())+")"+"\n";
                 spoOutput.write(line);
+                this.index.getSPOList().add(this.dictionnaireInverse.get(st.getSubject().toString()),
+                        this.dictionnaireInverse.get(st.getPredicate().toString()),
+                        this.dictionnaireInverse.get(st.getObject().toString()
+                        ));
 
 
                 line = "("+this.dictionnaireInverse.get(st.getPredicate().toString())+","+
@@ -180,5 +167,7 @@ public class DictionnayParser {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
+        this.index.getSPOList().print();
     }
 }

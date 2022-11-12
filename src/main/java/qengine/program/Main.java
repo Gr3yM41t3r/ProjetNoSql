@@ -1,19 +1,17 @@
 package qengine.program;
 
-import java.io.*;
-import java.net.URL;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.GraphQueryResult;
-import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
@@ -26,18 +24,18 @@ import org.eclipse.rdf4j.rio.Rio;
 
 /**
  * Programme simple lisant un fichier de requête et un fichier de données.
- * 
+ *
  * <p>
  * Les entrées sont données ici de manière statique,
  * à vous de programmer les entrées par passage d'arguments en ligne de commande comme demandé dans l'énoncé.
  * </p>
- * 
+ *
  * <p>
  * Le présent programme se contente de vous montrer la voie pour lire les triples et requêtes
  * depuis les fichiers ; ce sera à vous d'adapter/réécrire le code pour finalement utiliser les requêtes et interroger les données.
  * On ne s'attend pas forcémment à ce que vous gardiez la même structure de code, vous pouvez tout réécrire.
  * </p>
- * 
+ *
  * @author Olivier Rodriguez <olivier.rodriguez1@umontpellier.fr>
  */
 final class Main {
@@ -85,9 +83,8 @@ final class Main {
 	 * Entrée du programme
 	 */
 	public static void main(String[] args) throws Exception {
-		//parseData();
+		parseData();
 		//parseQueries();
-		all();
 	}
 
 	// ========================================================================
@@ -98,7 +95,7 @@ final class Main {
 	private static void parseQueries() throws FileNotFoundException, IOException {
 		/**
 		 * Try-with-resources
-		 * 
+		 *
 		 * @see <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">Try-with-resources</a>
 		 */
 		/*
@@ -111,10 +108,10 @@ final class Main {
 			StringBuilder queryString = new StringBuilder();
 
 			while (lineIterator.hasNext())
-			/*
-			 * On stocke plusieurs lignes jusqu'à ce que l'une d'entre elles se termine par un '}'
-			 * On considère alors que c'est la fin d'une requête
-			 */
+				/*
+				 * On stocke plusieurs lignes jusqu'à ce que l'une d'entre elles se termine par un '}'
+				 * On considère alors que c'est la fin d'une requête
+				 */
 			{
 				String line = lineIterator.next();
 				queryString.append(line);
@@ -140,33 +137,15 @@ final class Main {
 			RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
 
 			// On utilise notre implémentation de handler
-			MainRDFHandler mainRDFHandler = new MainRDFHandler();
+			RDFHandler mainRDFHandler = new RDFHandler();
 			rdfParser.setRDFHandler(mainRDFHandler);
-
 			// Parsing et traitement de chaque triple par le handler
 			rdfParser.parse(dataReader, baseURI);
+			ArrayList<Statement> list = new ArrayList<>();
+			//list = mainRDFHandler.getStatments();
 
-		}
-	}
 
-	private static void all() throws IOException {
-		Map<Integer,String> dictionnaire = new HashMap<>();
-		File initialFile = new File(dataFile);
-		InputStream targetStream = Files.newInputStream(initialFile.toPath());
-		RDFFormat format = RDFFormat.NTRIPLES;
-		try (GraphQueryResult res = QueryResults.parseGraphBackground(targetStream, baseURI, format)) {
-			while (res.hasNext()) {
-				Statement st = res.next();
-				System.out.print(st.getSubject()+" ");
-				System.out.print(st.getPredicate()+" ");
-				System.out.println(st.getObject());
-			}
-		}
-		catch (RDF4JException e) {
-			// handle unrecoverable error
-		}
-		finally {
-			targetStream.close();
+
 		}
 	}
 }

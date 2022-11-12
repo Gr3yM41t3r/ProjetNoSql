@@ -7,7 +7,7 @@ public class Main {
         DictionnayParser dictionnayParser = new DictionnayParser();
         dictionnayParser.createDictionnay();
         dictionnayParser.printDictionnary();
-        dictionnayParser.writeCsv("data/out/test.csv");
+
         dictionnayParser.hexastore("data/out/");
     }
 }

@@ -3,6 +3,8 @@ package qengine.program;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
+import java.util.ArrayList;
+
 /**
  * Le RDFHandler intervient lors du parsing de données et permet d'appliquer un traitement pour chaque élément lu par le parseur.
  * 
@@ -15,8 +17,13 @@ import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
  */
 public final class MainRDFHandler extends AbstractRDFHandler {
 
+
+
 	@Override
 	public void handleStatement(Statement st) {
 		System.out.println("\n" + st.getSubject() + "\t " + st.getPredicate() + "\t " + st.getObject());
+
 	};
+
+
 }
