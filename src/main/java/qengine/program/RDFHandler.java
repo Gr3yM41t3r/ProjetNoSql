@@ -6,9 +6,9 @@ import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +41,20 @@ public class RDFHandler extends AbstractRDFHandler {
             rdfParser.parse(dataReader, null);
             return this.getStatments();
 
-
         }
+    }
+
+    public List<Statement> parseOneLine(InputStream inputStream) throws IOException {
+        this.statements.clear();
+        // On va parser des données au format ntriples
+        RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
+        // On utilise notre implémentation de handler
+        rdfParser.setRDFHandler(this);
+        // Parsing et traitement de chaque triple par le handler
+        rdfParser.parse(inputStream, null);
+        return this.getStatments();
+
+
     }
 
 

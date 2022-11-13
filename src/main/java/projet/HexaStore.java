@@ -1,5 +1,7 @@
 package projet;
 
+import org.eclipse.rdf4j.query.algebra.Str;
+
 import java.util.*;
 
 public class HexaStore {
@@ -33,7 +35,8 @@ public class HexaStore {
             }});
         }
     }
-    public void print(){
+    public String print(){
+        StringBuilder str = new StringBuilder();
         SortedSet<Integer> keys = new TreeSet<>(hexastore.keySet());
         for (Integer hex : keys) {
             String key = hex.toString();
@@ -42,10 +45,11 @@ public class HexaStore {
                 String key2 = hex2.toString();
                 List<Integer> list = value.get(hex2);
                 for (Integer in:list) {
-                    System.out.println("("+key + "," + key2+","+in+")");
+                    str.append("(").append(key).append(",").append(key2).append(",").append(in).append(")").append("\n");
                 }
             }
         }
+        return str.toString();
 
     }
 

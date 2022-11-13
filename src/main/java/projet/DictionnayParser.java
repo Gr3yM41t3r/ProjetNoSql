@@ -41,12 +41,43 @@ public class DictionnayParser {
         this.dictionnaire =  new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler =new RDFHandler();
-
     }
 
+    public RDFHandler getRdfHandler() {
+        return rdfHandler;
+    }
+
+    public Index getIndex() {
+        return index;
+    }
 
     public void createDictionnay() throws IOException {
         List<Statement> statementList = rdfHandler.parseData(dataFile);
+        int max;
+        for (Statement st:statementList) {
+            if (this.dictionnaire.isEmpty()){
+                max = 0;
+            }else {
+                max = Collections.max(dictionnaire.keySet());
+            }
+            if (!dictionnaire.containsValue(st.getSubject().toString())){
+                dictionnaire.put( max+1,st.getSubject().toString());
+                max++;
+            }
+            if (!dictionnaire.containsValue(st.getPredicate().toString())){
+                dictionnaire.put(max+1,st.getPredicate().toString());
+                max++;
+            }
+            if (!dictionnaire.containsValue(st.getObject().toString())){
+                dictionnaire.put(max+1,st.getObject().toString());
+                max++;
+            }
+
+        }
+        createDictionnaireInverser();
+    }
+
+    public void createDictionnay(List<Statement> statementList) throws IOException {
         int max;
         for (Statement st:statementList) {
             if (this.dictionnaire.isEmpty()){
@@ -92,12 +123,22 @@ public class DictionnayParser {
     }
 
 
+    public void createIndexes(List<Statement> statementList){
+        for (Statement st:statementList) {
+            this.index.getSPOList().add(this.dictionnaireInverse.get(st.getSubject().toString()),
+                    this.dictionnaireInverse.get(st.getPredicate().toString()),
+                    this.dictionnaireInverse.get(st.getObject().toString()
+                    ));
+
+        }
+    }
+
+
 
 
     public void hexastore(String filePath) throws IOException {
         String line="";
         List<Statement> statementList = rdfHandler.parseData(dataFile);
-        System.out.println(statementList.size());
         try {
             File spo = new File(filePath+"/spo");
             File pso = new File(filePath+"/pso");
