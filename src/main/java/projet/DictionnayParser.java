@@ -1,14 +1,11 @@
 package projet;
 
-import com.opencsv.CSVWriter;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.algebra.In;
 import qengine.program.RDFHandler;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,60 +13,65 @@ import java.util.Map;
 
 public class DictionnayParser {
 
-    private Map<Integer,String> dictionnaire;
-    private Map<String,Integer> dictionnaireInverse;
-    private RDFHandler rdfHandler ;
     private final String baseURI = null;
-    private Index index =new Index();
-
     /**
      * Votre répertoire de travail où vont se trouver les fichiers à lire
      */
     private final String workingDir = "data/";
-
     /**
      * Fichier contenant les requêtes sparql
      */
     private final String queryFile = workingDir + "sample_query.queryset";
-
     /**
      * Fichier contenant des données rdf
      */
     private final String dataFile = workingDir + "sample_data.nt";
-
-    public DictionnayParser(){
-        this.dictionnaire =  new HashMap<>();
+    private final Map<Integer, String> dictionnaire;
+    private final Map<String, Integer> dictionnaireInverse;
+    private final RDFHandler rdfHandler;
+    private final HexaStore index = new HexaStore();
+    private List<Statement> statementsList;
+    public DictionnayParser() {
+        this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
-        this.rdfHandler =new RDFHandler();
+        this.rdfHandler = new RDFHandler();
     }
 
-    public RDFHandler getRdfHandler() {
-        return rdfHandler;
+    public String getDataFile() {
+        return dataFile;
     }
 
-    public Index getIndex() {
-        return index;
+    public void parseStatementList() throws IOException {
+        this.statementsList = rdfHandler.parseData(dataFile);
     }
 
+    //-----------------------Dictionnary Utils -----------------------------------
+    /*****
+     * TODO: Use bigInteger inster of integer to autoIncrement key
+     * @throws IOException
+     */
     public void createDictionnay() throws IOException {
-        List<Statement> statementList = rdfHandler.parseData(dataFile);
+        if (this.statementsList == null) {
+            System.err.println("List null: vous devez initialiser la liste: parseStatementList()");
+            return;
+        }
         int max;
-        for (Statement st:statementList) {
-            if (this.dictionnaire.isEmpty()){
+        for (Statement st : this.statementsList) {
+            if (this.dictionnaire.isEmpty()) {
                 max = 0;
-            }else {
+            } else {
                 max = Collections.max(dictionnaire.keySet());
             }
-            if (!dictionnaire.containsValue(st.getSubject().toString())){
-                dictionnaire.put( max+1,st.getSubject().toString());
+            if (!dictionnaire.containsValue(st.getSubject().toString())) {
+                dictionnaire.put(max + 1, st.getSubject().toString());
                 max++;
             }
-            if (!dictionnaire.containsValue(st.getPredicate().toString())){
-                dictionnaire.put(max+1,st.getPredicate().toString());
+            if (!dictionnaire.containsValue(st.getPredicate().toString())) {
+                dictionnaire.put(max + 1, st.getPredicate().toString());
                 max++;
             }
-            if (!dictionnaire.containsValue(st.getObject().toString())){
-                dictionnaire.put(max+1,st.getObject().toString());
+            if (!dictionnaire.containsValue(st.getObject().toString())) {
+                dictionnaire.put(max + 1, st.getObject().toString());
                 max++;
             }
 
@@ -77,122 +79,105 @@ public class DictionnayParser {
         createDictionnaireInverser();
     }
 
-    public void createDictionnay(List<Statement> statementList) throws IOException {
-        int max;
-        for (Statement st:statementList) {
-            if (this.dictionnaire.isEmpty()){
-                max = 0;
-            }else {
-                max = Collections.max(dictionnaire.keySet());
-            }
-            if (!dictionnaire.containsValue(st.getSubject().toString())){
-                dictionnaire.put( max+1,st.getSubject().toString());
-                max++;
-            }
-            if (!dictionnaire.containsValue(st.getPredicate().toString())){
-                dictionnaire.put(max+1,st.getPredicate().toString());
-                max++;
-            }
-            if (!dictionnaire.containsValue(st.getObject().toString())){
-                dictionnaire.put(max+1,st.getObject().toString());
-                max++;
-            }
 
-        }
-        createDictionnaireInverser();
-    }
-
-    public void createDictionnaireInverser(){
+    public void createDictionnaireInverser() {
         for (Map.Entry<Integer, String> entry : dictionnaire.entrySet()) {
-            this.dictionnaireInverse.put(entry.getValue(),entry.getKey());
-
+            this.dictionnaireInverse.put(entry.getValue(), entry.getKey());
         }
 
     }
-    public void printDictionnary(){
-        for (Integer integer: dictionnaire.keySet()) {
+
+    public void printDictionnary() {
+        for (Integer integer : dictionnaire.keySet()) {
             String key = integer.toString();
-            String value = dictionnaire.get(integer).toString();
-            //System.out.println("("+key + "," + value+")");
+            String value = dictionnaire.get(integer);
+            System.out.println("(" + key + "," + value + ")");
         }
-        for (String  str: dictionnaireInverse.keySet()) {
-            String key = str.toString();
+        for (String str : dictionnaireInverse.keySet()) {
+            String key = str;
             String value = dictionnaireInverse.get(str).toString();
-          //  System.out.println("("+key + "," + value+")");
+            System.out.println("(" + key + "," + value + ")");
+        }
+    }
+
+    public void saveDictionnary(String filePath) throws IOException {
+        File keyValueDict = new File(filePath + "/dict_key_value.txt");
+        File valueKeyDict = new File(filePath + "/dict_value_key.txt");
+        FileWriter keyValueDictOut = new FileWriter(keyValueDict);
+        FileWriter valueKeyDictOut = new FileWriter(valueKeyDict);
+        String line = "";
+        for (Integer integer : dictionnaire.keySet()) {
+            String key = integer.toString();
+            String value = dictionnaire.get(integer);
+            line = "(" + key + "," + value + ") \n";
+            keyValueDictOut.write(line);
+        }
+        for (String str : dictionnaireInverse.keySet()) {
+            String key = str;
+            String value = dictionnaireInverse.get(str).toString();
+            line = "(" + key + "," + value + ") \n";
+            valueKeyDictOut.write(line);
+        }
+        keyValueDictOut.close();
+        valueKeyDictOut.close();
+    }
+
+
+    //-----------------------Indexes Utils -----------------------------------
+
+    public void createIndexes(List<Statement> statementList) {
+        if (this.statementsList == null) {
+            System.err.println("List null: vous devez initialiser la liste: parseStatementList()");
+            return;
+        }
+        int predicate;
+        int object;
+        int subject;
+        for (Statement st : statementList) {
+            predicate = this.dictionnaireInverse.get(st.getPredicate().toString());
+            object = this.dictionnaireInverse.get(st.getObject().toString());
+            subject = this.dictionnaireInverse.get(st.getSubject().toString());
+            this.index.getSPOIndex().add(subject, predicate, object);
+            this.index.getPSOIndex().add(predicate, subject, object);
+            this.index.getOSPIndex().add(object, subject, predicate);
+            this.index.getSOPIndex().add(subject, object, predicate);
+            this.index.getPOSIndex().add(predicate, object, subject);
+            this.index.getOPSIndex().add(object, predicate, subject);
         }
     }
 
 
-    public void createIndexes(List<Statement> statementList){
-        for (Statement st:statementList) {
-            this.index.getSPOList().add(this.dictionnaireInverse.get(st.getSubject().toString()),
-                    this.dictionnaireInverse.get(st.getPredicate().toString()),
-                    this.dictionnaireInverse.get(st.getObject().toString()
-                    ));
-
-        }
-    }
 
 
 
 
-    public void hexastore(String filePath) throws IOException {
-        String line="";
+    public void saveIndexes(String filePath) throws IOException {
+        String line = "";
         List<Statement> statementList = rdfHandler.parseData(dataFile);
         try {
-            File spo = new File(filePath+"/spo");
-            File pso = new File(filePath+"/pso");
-            File osp = new File(filePath+"/osp");
-            File sop = new File(filePath+"/sop");
-            File pos = new File(filePath+"/pos");
-            File ops = new File(filePath+"ops");
+            File spo = new File(filePath + "/spo");
+            File pso = new File(filePath + "/pso");
+            File osp = new File(filePath + "/osp");
+            File sop = new File(filePath + "/sop");
+            File pos = new File(filePath + "/pos");
+            File ops = new File(filePath + "ops");
             FileWriter spoOutput = new FileWriter(spo);
             FileWriter psoOutput = new FileWriter(pso);
             FileWriter ospOutput = new FileWriter(osp);
             FileWriter sopOutput = new FileWriter(sop);
             FileWriter posOutput = new FileWriter(pos);
             FileWriter opsOutput = new FileWriter(ops);
-            for (Statement st:statementList) {
-                line = "("+this.dictionnaireInverse.get(st.getSubject().toString())+","+
-                        this.dictionnaireInverse.get(st.getPredicate().toString())+","
-                        +this.dictionnaireInverse.get(st.getObject().toString())+")"+"\n";
-                spoOutput.write(line);
-                this.index.getSPOList().add(this.dictionnaireInverse.get(st.getSubject().toString()),
-                        this.dictionnaireInverse.get(st.getPredicate().toString()),
-                        this.dictionnaireInverse.get(st.getObject().toString()
-                        ));
 
 
-                line = "("+this.dictionnaireInverse.get(st.getPredicate().toString())+","+
-                        this.dictionnaireInverse.get(st.getSubject().toString())+","
-                        +this.dictionnaireInverse.get(st.getObject().toString())+")"+"\n";
-                psoOutput.write(line);
+            spoOutput.write(this.index.getSPOIndex().print());
+            psoOutput.write(this.index.getPSOIndex().print());
+            ospOutput.write(this.index.getOPSIndex().print());
+            sopOutput.write(this.index.getSOPIndex().print());
+            posOutput.write(this.index.getPOSIndex().print());
+            opsOutput.write(this.index.getOPSIndex().print());
 
 
-                line = "("+this.dictionnaireInverse.get(st.getObject().toString())+","+
-                        this.dictionnaireInverse.get(st.getSubject().toString())+","
-                        +this.dictionnaireInverse.get(st.getPredicate().toString())+")"+"\n";
-                ospOutput.write(line);
 
-
-                line = "("+this.dictionnaireInverse.get(st.getSubject().toString())+","+
-                        this.dictionnaireInverse.get(st.getObject().toString())+","
-                        +this.dictionnaireInverse.get(st.getPredicate().toString())+")"+"\n";
-                sopOutput.write(line);
-
-
-                line = "("+this.dictionnaireInverse.get(st.getPredicate().toString())+","+
-                        this.dictionnaireInverse.get(st.getObject().toString())+","
-                        +this.dictionnaireInverse.get(st.getSubject().toString())+")"+"\n";
-                posOutput.write(line);
-
-
-                line = "("+this.dictionnaireInverse.get(st.getObject().toString())+","+
-                        this.dictionnaireInverse.get(st.getPredicate().toString())+","
-                        +this.dictionnaireInverse.get(st.getSubject().toString())+")"+"\n";
-                opsOutput.write(line);
-
-            }
             spoOutput.close();
             psoOutput.close();
             ospOutput.close();
@@ -202,13 +187,26 @@ public class DictionnayParser {
             opsOutput.close();
 
 
-
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
 
-        this.index.getSPOList().print();
+    //---------------------------- Getters Setters----------------------------
+    public List<Statement> getStatementsList() {
+        return statementsList;
+    }
+
+    public void setStatementsList(List<Statement> statementsList) {
+        this.statementsList = statementsList;
+    }
+
+    public RDFHandler getRdfHandler() {
+        return rdfHandler;
+    }
+
+    public HexaStore getIndex() {
+        return index;
     }
 }

@@ -1,59 +1,50 @@
 package projet;
 
-import org.eclipse.rdf4j.query.algebra.Str;
 
-import java.util.*;
-
+/***
+ * classe representant la structure HexaStore
+ *
+ *
+ * ***/
 public class HexaStore {
-    private final Map<Integer, Map<Integer, List<Integer>>> hexastore;
+
+    private final Index SPOIndex;
+    private final Index PSOIndex;
+    private final Index OSPIndex;
+    private final Index SOPIndex;
+    private final Index POSIndex;
+    private final Index OPSIndex;
 
     public HexaStore() {
-        this.hexastore = new HashMap<>();
+        this.SPOIndex = new Index();
+        this.PSOIndex = new Index();
+        this.OSPIndex = new Index();
+        this.SOPIndex = new Index();
+        this.POSIndex = new Index();
+        this.OPSIndex = new Index();
     }
 
-    public Map<Integer, Map<Integer, List<Integer>>> getHexastore() {
-        return hexastore;
+    public Index getSPOIndex() {
+        return SPOIndex;
     }
 
-    public void add(int i1, int i2, int i3) {
-        if (hexastore.containsKey(i1)) {
-            if (hexastore.get(i1).containsKey(i2)) {
-                if (hexastore.get(i1).get(i2).contains(i3)) {
-                } else {
-                    hexastore.get(i1).get(i2).add(i3);
-                }
-            } else {
-                hexastore.get(i1).put(i2, new ArrayList<Integer>(){{
-                    add(i3);
-                }});
-            }
-        } else {
-            hexastore.put(i1, new HashMap<Integer, List<Integer>>() {{
-                put(i2, new ArrayList<Integer>() {{
-                    add(i3);
-                }});
-            }});
-        }
-    }
-    public String print(){
-        StringBuilder str = new StringBuilder();
-        SortedSet<Integer> keys = new TreeSet<>(hexastore.keySet());
-        for (Integer hex : keys) {
-            String key = hex.toString();
-            Map<Integer, List<Integer>> value = hexastore.get(hex);
-            for (Integer hex2: value.keySet()) {
-                String key2 = hex2.toString();
-                List<Integer> list = value.get(hex2);
-                for (Integer in:list) {
-                    str.append("(").append(key).append(",").append(key2).append(",").append(in).append(")").append("\n");
-                }
-            }
-        }
-        return str.toString();
-
+    public Index getPSOIndex() {
+        return PSOIndex;
     }
 
+    public Index getOSPIndex() {
+        return OSPIndex;
+    }
 
+    public Index getSOPIndex() {
+        return SOPIndex;
+    }
 
+    public Index getPOSIndex() {
+        return POSIndex;
+    }
 
+    public Index getOPSIndex() {
+        return OPSIndex;
+    }
 }
