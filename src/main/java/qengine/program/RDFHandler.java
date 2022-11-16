@@ -44,6 +44,11 @@ public class RDFHandler extends AbstractRDFHandler {
         }
     }
 
+
+    /**
+     * FOr Debug Only
+    *
+    * **/
     public List<Statement> parseOneLine(InputStream inputStream) throws IOException {
         this.statements.clear();
         // On va parser des données au format ntriples

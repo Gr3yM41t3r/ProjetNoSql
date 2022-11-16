@@ -31,24 +31,24 @@ public class DictionnayParser {
     private final RDFHandler rdfHandler;
     private final HexaStore index = new HexaStore();
     private List<Statement> statementsList;
+
     public DictionnayParser() {
         this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler = new RDFHandler();
     }
 
-    public String getDataFile() {
-        return dataFile;
-    }
 
     public void parseStatementList() throws IOException {
         this.statementsList = rdfHandler.parseData(dataFile);
     }
 
     //-----------------------Dictionnary Utils -----------------------------------
+
     /*****
      * TODO: Use bigInteger inster of integer to autoIncrement key
      * @throws IOException
+     *
      */
     public void createDictionnay() throws IOException {
         if (this.statementsList == null) {
@@ -147,10 +147,6 @@ public class DictionnayParser {
     }
 
 
-
-
-
-
     public void saveIndexes(String filePath) throws IOException {
         String line = "";
         List<Statement> statementList = rdfHandler.parseData(dataFile);
@@ -175,7 +171,6 @@ public class DictionnayParser {
             sopOutput.write(this.index.getSOPIndex().print());
             posOutput.write(this.index.getPOSIndex().print());
             opsOutput.write(this.index.getOPSIndex().print());
-
 
 
             spoOutput.close();
@@ -208,5 +203,9 @@ public class DictionnayParser {
 
     public HexaStore getIndex() {
         return index;
+    }
+
+    public String getDataFile() {
+        return dataFile;
     }
 }
