@@ -42,6 +42,7 @@ class HexaStoreTest {
         List<Statement> list = dictionnayParser.getRdfHandler().parseOneLine(stream);
 
         dictionnayParser.setStatementsList(list);
+
         //creer le dictionnaire
         dictionnayParser.createDictionnay();
         //creer les indexes

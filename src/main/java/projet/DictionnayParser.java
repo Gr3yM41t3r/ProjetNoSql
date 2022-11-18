@@ -21,21 +21,22 @@ public class DictionnayParser {
     /**
      * Fichier contenant les requêtes sparql
      */
-    private final String queryFile = workingDir + "sample_query.queryset";
+    private  String queryFile = workingDir + "sample_query.queryset";
     /**
      * Fichier contenant des données rdf
      */
-    private final String dataFile = workingDir + "sample_data.nt";
+    private  String dataFile ;
     private final Map<Integer, String> dictionnaire;
     private final Map<String, Integer> dictionnaireInverse;
     private final RDFHandler rdfHandler;
     private final HexaStore index = new HexaStore();
     private List<Statement> statementsList;
 
-    public DictionnayParser() {
+    public DictionnayParser(String df) {
         this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler = new RDFHandler();
+        this.dataFile = workingDir+df;
     }
 
 
@@ -46,7 +47,8 @@ public class DictionnayParser {
     //-----------------------Dictionnary Utils -----------------------------------
 
     /*****
-     * TODO: Use bigInteger inster of integer to autoIncrement key
+     * TODO: Use AtomicInteger
+     * inster of integer to autoIncrement key
      * @throws IOException
      *
      */
@@ -56,12 +58,12 @@ public class DictionnayParser {
             return;
         }
         int max;
+        if (this.dictionnaire.isEmpty()) {
+            max = 0;
+        } else {
+            max = Collections.max(dictionnaire.keySet());
+        }
         for (Statement st : this.statementsList) {
-            if (this.dictionnaire.isEmpty()) {
-                max = 0;
-            } else {
-                max = Collections.max(dictionnaire.keySet());
-            }
             if (!dictionnaire.containsValue(st.getSubject().toString())) {
                 dictionnaire.put(max + 1, st.getSubject().toString());
                 max++;
@@ -207,5 +209,13 @@ public class DictionnayParser {
 
     public String getDataFile() {
         return dataFile;
+    }
+
+    public Map<Integer, String> getDictionnaire() {
+        return dictionnaire;
+    }
+
+    public Map<String, Integer> getDictionnaireInverse() {
+        return dictionnaireInverse;
     }
 }

@@ -63,20 +63,20 @@ final class Main {
 	 */
 	public static void processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
+		System.err.println(patterns.size());
+		System.err.println("dsd"+ patterns.get(0).getSubjectVar().getName());
+		System.err.println(patterns.get(0).getObjectVar().getValue().toString());
+		System.err.println(patterns.get(0).getPredicateVar().getValue().toString());
 
-		System.out.println("first pattern : " + patterns.get(0));
 
+/*
 		System.out.println("object of the first pattern : " + patterns.get(0).getObjectVar().getValue());
 
 		System.out.println("variables to project : ");
+*/
 
-		// Utilisation d'une classe anonyme
-		query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
 
-			public void meet(Projection projection) {
-				System.out.println(projection.getProjectionElemList().getElements());
-			}
-		});
+
 	}
 
 	/**
@@ -84,7 +84,7 @@ final class Main {
 	 */
 	public static void main(String[] args) throws Exception {
 		parseData();
-		//parseQueries();
+		parseQueries();
 	}
 
 	// ========================================================================
@@ -118,6 +118,9 @@ final class Main {
 
 				if (line.trim().endsWith("}")) {
 					ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
+					System.err.println(queryString.toString());
+					//System.err.println(query.getTupleExpr());
+
 
 					processAQuery(query); // Traitement de la requête, à adapter/réécrire pour votre programme
 

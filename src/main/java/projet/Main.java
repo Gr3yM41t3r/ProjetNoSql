@@ -8,7 +8,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws IOException {
         //creation du dictionnaire parser
-        DictionnayParser dictionnayParser = new DictionnayParser();
+        DictionnayParser dictionnayParser = new DictionnayParser("100K.nt");
         // on parse le fichier data
         dictionnayParser.parseStatementList();
         //creer le dictionnaire
@@ -17,8 +17,11 @@ public class Main {
         dictionnayParser.saveDictionnary("data/out/");
         //creer les index à partir des dictionnaires
         dictionnayParser.createIndexes(dictionnayParser.getStatementsList());
-        // sauvegarder les indexes dans le dossier data/out (pas obligatoire)
-        dictionnayParser.saveIndexes("data/out/");
+
+        RequestParser requestParser = new RequestParser("sample_query.queryset",dictionnayParser);
+        requestParser.parseQueries();
+
+
 
 
 
