@@ -52,7 +52,14 @@ public class RequestParser {
     public void processAQuery(ParsedQuery query) {
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
         List<Integer> reponse = new ArrayList<>();
+        int rightApproach=this.getMissingVariable(patterns.get(0));
         for (int i = 0; i < patterns.size(); i++) {
+            switch (rightApproach){
+                case 1://object needed
+                case 2://subject needed
+                case 3://Predicate needed
+                default://error
+            }
             String obj = patterns.get(i).getObjectVar().getValue().toString();
             String prd = patterns.get(i).getPredicateVar().getValue().toString();
             Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
@@ -61,7 +68,6 @@ public class RequestParser {
             if (this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object) != null){
                 if (reponse.isEmpty()){
                     reponse.addAll(this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object));
-
                 }else {
                     reponse.retainAll(this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object));
 
@@ -120,16 +126,24 @@ public class RequestParser {
      * le but est de bien determiner le choix de la structure hexastore à utiliser
      *
      */
-    public void getMissingVariable(StatementPattern statementPattern){
+    public int getMissingVariable(StatementPattern statementPattern){
         if(statementPattern.getObjectVar().getValue()==null){
             System.out.println("object needed");
+            return 1;
         } else if (statementPattern.getSubjectVar().getValue()==null) {
             System.out.println("Subject needed");
+            return 2;
+
         } else if (statementPattern.getPredicateVar().getValue()==null) {
             System.out.println("Predicate needed");
-
+            return 3;
         }
+        return 0 ;
 
     }
+
+    public void getPredicateAnswers(){}
+    public void getObjectAnswers(){}
+    public void getSubjectAnswers(){}
 
 }
