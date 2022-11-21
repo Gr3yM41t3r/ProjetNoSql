@@ -63,10 +63,21 @@ final class Main {
 	 */
 	public static void processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
-		System.err.println(patterns.size());
-		System.err.println("dsd"+ patterns.get(0).getSubjectVar().getName());
-		System.err.println(patterns.get(0).getObjectVar().getValue().toString());
-		System.err.println(patterns.get(0).getPredicateVar().getValue().toString());
+		//System.err.println(patterns.size());
+		//System.err.println("dsd"+ patterns.get(0).getSubjectVar().getName());
+		//System.err.println(patterns.get(0).getObjectVar().getValue().toString());
+		//System.err.println(patterns.get(0).getPredicateVar().getValue().toString());
+		System.out.println(patterns.get(0).getSubjectVar().getValue());
+		System.out.println(patterns.get(0).getPredicateVar().getValue());
+		System.out.println(patterns.get(0).getObjectVar().getValue());
+		if(patterns.get(0).getObjectVar().getValue()==null){
+			System.out.println("object needed");
+		} else if (patterns.get(0).getSubjectVar().getValue()==null) {
+			System.out.println("Subject needed");
+		} else if (patterns.get(0).getPredicateVar().getValue()==null) {
+			System.out.println("Predicate needed");
+
+		}
 
 
 /*
@@ -118,7 +129,6 @@ final class Main {
 
 				if (line.trim().endsWith("}")) {
 					ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
-					System.err.println(queryString.toString());
 					//System.err.println(query.getTupleExpr());
 
 

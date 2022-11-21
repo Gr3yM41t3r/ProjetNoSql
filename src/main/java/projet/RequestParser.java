@@ -47,22 +47,16 @@ public class RequestParser {
     public RequestParser(String queryFile, DictionnayParser dictionnayParser) {
         this.queryFile = workingDir + queryFile;
         this.dictionnayParser = dictionnayParser;
-        System.out.println(this.queryFile);
     }
 
     public void processAQuery(ParsedQuery query) {
-
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
         List<Integer> reponse = new ArrayList<>();
         for (int i = 0; i < patterns.size(); i++) {
             String obj = patterns.get(i).getObjectVar().getValue().toString();
-
             String prd = patterns.get(i).getPredicateVar().getValue().toString();
-
             Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
             Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-            //System.out.println(object);
-           // System.out.println(predicate);
 
             if (this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object) != null){
                 if (reponse.isEmpty()){
@@ -119,6 +113,23 @@ public class RequestParser {
                 }
             }
         }
+    }
+
+    /***
+     * cette méthode detecte automatique la variable inconnue v0 (elle peut être soit le subject, predicate ou object )
+     * le but est de bien determiner le choix de la structure hexastore à utiliser
+     *
+     */
+    public void getMissingVariable(StatementPattern statementPattern){
+        if(statementPattern.getObjectVar().getValue()==null){
+            System.out.println("object needed");
+        } else if (statementPattern.getSubjectVar().getValue()==null) {
+            System.out.println("Subject needed");
+        } else if (statementPattern.getPredicateVar().getValue()==null) {
+            System.out.println("Predicate needed");
+
+        }
+
     }
 
 }

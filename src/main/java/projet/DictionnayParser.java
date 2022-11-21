@@ -18,25 +18,25 @@ public class DictionnayParser {
      * Votre répertoire de travail où vont se trouver les fichiers à lire
      */
     private final String workingDir = "data/";
-    /**
-     * Fichier contenant les requêtes sparql
-     */
-    private  String queryFile = workingDir + "sample_query.queryset";
-    /**
-     * Fichier contenant des données rdf
-     */
-    private  String dataFile ;
     private final Map<Integer, String> dictionnaire;
     private final Map<String, Integer> dictionnaireInverse;
     private final RDFHandler rdfHandler;
     private final HexaStore index = new HexaStore();
+    /**
+     * Fichier contenant les requêtes sparql
+     */
+    private final String queryFile = workingDir + "sample_query.queryset";
+    /**
+     * Fichier contenant des données rdf
+     */
+    private final String dataFile;
     private List<Statement> statementsList;
 
     public DictionnayParser(String df) {
         this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler = new RDFHandler();
-        this.dataFile = workingDir+df;
+        this.dataFile = workingDir + df;
     }
 
 
@@ -53,6 +53,8 @@ public class DictionnayParser {
      *
      */
     public void createDictionnay() throws IOException {
+        long startTime = System.nanoTime();
+
         if (this.statementsList == null) {
             System.err.println("List null: vous devez initialiser la liste: parseStatementList()");
             return;
@@ -63,28 +65,34 @@ public class DictionnayParser {
         } else {
             max = Collections.max(dictionnaire.keySet());
         }
-        for (Statement st : this.statementsList) {
-            if (!dictionnaire.containsValue(st.getSubject().toString())) {
-                dictionnaire.put(max + 1, st.getSubject().toString());
+        int total = this.statementsList.size();
+        for (int i =0;i<total;i++) {
+            printProgress("Parsing",(i*100)/total);
+            if(!dictionnaireInverse.containsKey(statementsList.get(i).getSubject().toString())){
+                dictionnaireInverse.put(statementsList.get(i).getSubject().toString(),max);
                 max++;
             }
-            if (!dictionnaire.containsValue(st.getPredicate().toString())) {
-                dictionnaire.put(max + 1, st.getPredicate().toString());
+            if(!dictionnaireInverse.containsKey(statementsList.get(i).getPredicate().toString())){
+                dictionnaireInverse.put(statementsList.get(i).getPredicate().toString(),max);
                 max++;
             }
-            if (!dictionnaire.containsValue(st.getObject().toString())) {
-                dictionnaire.put(max + 1, st.getObject().toString());
+            if(!dictionnaireInverse.containsKey(statementsList.get(i).getObject().toString())){
+                dictionnaireInverse.put(statementsList.get(i).getObject().toString(),max);
                 max++;
             }
 
         }
         createDictionnaireInverser();
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
+        System.out.println("Parsing 100%  |  done in : " +duration/1_000_000_000+"s  "+duration/1_000_000+"ms");
     }
 
 
     public void createDictionnaireInverser() {
-        for (Map.Entry<Integer, String> entry : dictionnaire.entrySet()) {
-            this.dictionnaireInverse.put(entry.getValue(), entry.getKey());
+        for (Map.Entry<String, Integer> entry : dictionnaireInverse.entrySet()) {
+            this.dictionnaire.put(entry.getValue(), entry.getKey());
         }
 
     }
@@ -217,5 +225,11 @@ public class DictionnayParser {
 
     public Map<String, Integer> getDictionnaireInverse() {
         return dictionnaireInverse;
+    }
+
+
+    public void printProgress(String msg,int progess) {
+        char[] animationChars = new char[]{'|', '/', '-', '\\'};
+        System.out.print(msg+" : " + progess + "% " + animationChars[progess % 4] + "\r");
     }
 }

@@ -8,6 +8,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws IOException {
         //creation du dictionnaire parser
+        //long startTime = System.nanoTime();
         DictionnayParser dictionnayParser = new DictionnayParser("100K.nt");
         // on parse le fichier data
         dictionnayParser.parseStatementList();
@@ -20,6 +21,11 @@ public class Main {
 
         RequestParser requestParser = new RequestParser("sample_query.queryset",dictionnayParser);
         requestParser.parseQueries();
+
+       // long endTime = System.nanoTime();
+        //long duration = (endTime - startTime);
+      //  System.out.println("total execution time : " +duration/1_000_000_000+"s (" +duration/1_000_000+"ms)");
+
 
 
 
