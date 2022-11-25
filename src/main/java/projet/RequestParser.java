@@ -1,5 +1,6 @@
 package projet;
 
+import org.apache.jena.rdfxml.xmlinput.AResource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.algebra.In;
 import org.eclipse.rdf4j.query.algebra.Projection;
@@ -35,7 +36,7 @@ public class RequestParser {
      * Fichier contenant les requêtes sparql
      */
     private String queryFile;
-
+    List<Integer> reponse = new ArrayList<>();
     /**
      * Fichier contenant des données rdf
      */
@@ -51,29 +52,27 @@ public class RequestParser {
 
     public void processAQuery(ParsedQuery query) {
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
-        List<Integer> reponse = new ArrayList<>();
+
         int rightApproach=this.getMissingVariable(patterns.get(0));
+        int a = 0;
         for (int i = 0; i < patterns.size(); i++) {
+            a=0;
+            System.out.println(rightApproach);
+
             switch (rightApproach){
-                case 1://object needed
-                case 2://subject needed
-                case 3://Predicate needed
+
+                case 1:a= getObjectAnswers(patterns.get(i));
+
+                case 2:a =getSubjectAnswers(patterns.get(i));
+                case 3:
                 default://error
             }
-            String obj = patterns.get(i).getObjectVar().getValue().toString();
-            String prd = patterns.get(i).getPredicateVar().getValue().toString();
-            Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
-            Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-
-            if (this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object) != null){
-                if (reponse.isEmpty()){
-                    reponse.addAll(this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object));
-                }else {
-                    reponse.retainAll(this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object));
-
-                }
-
+            System.err.println("system returner" +a);
+            if(a==-1){
+                reponse.clear();
+                break;
             }
+
 
         }
         Set<Integer> listfinale= new HashSet<>(reponse);
@@ -142,8 +141,48 @@ public class RequestParser {
 
     }
 
-    public void getPredicateAnswers(){}
-    public void getObjectAnswers(){}
-    public void getSubjectAnswers(){}
+
+    public int getObjectAnswers(StatementPattern statementPattern){
+        String sbj = statementPattern.getObjectVar().getValue().toString();
+        String prd = statementPattern.getPredicateVar().getValue().toString();
+        Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
+        Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
+        if (this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject) != null){
+            if (reponse.isEmpty()){
+                reponse.addAll(this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject));
+            }else {
+                reponse.retainAll(this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject));
+            }
+            return 1;
+        }else {
+            return -1;
+        }
+    }
+    public int getSubjectAnswers(StatementPattern statementPattern){
+
+        String obj = statementPattern.getObjectVar().getValue().toString();
+        String prd = statementPattern.getPredicateVar().getValue().toString();
+        Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
+        Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
+        System.out.printf("response for request" +this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object)  );
+
+        if (this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate) != null){
+            if (reponse.isEmpty()){
+                reponse.addAll(this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate));
+                System.err.println(1);
+                return 1;
+            }else {
+                boolean abc =reponse.retainAll(this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate));
+                System.err.println(2);
+                if (reponse.isEmpty()){
+                    return -1;
+                }
+                return 1;
+            }
+
+        }else {
+            return -1;
+        }
+    }
 
 }
