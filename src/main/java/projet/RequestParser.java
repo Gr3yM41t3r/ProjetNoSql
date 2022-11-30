@@ -1,24 +1,12 @@
 package projet;
 
-import org.apache.jena.rdfxml.xmlinput.AResource;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.algebra.In;
-import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
-import org.eclipse.rdf4j.query.algebra.Str;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParser;
-import org.eclipse.rdf4j.rio.Rio;
-import qengine.program.RDFHandler;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -31,18 +19,16 @@ public class RequestParser {
      * Votre répertoire de travail où vont se trouver les fichiers à lire
      */
     private final String workingDir = "data/";
-
-    /**
-     * Fichier contenant les requêtes sparql
-     */
-    private String queryFile;
-    List<Integer> reponse = new ArrayList<>();
     /**
      * Fichier contenant des données rdf
      */
     private final String dataFile = workingDir + "sample_data.nt";
-
-    private DictionnayParser dictionnayParser;
+    List<Integer> reponse = new ArrayList<>();
+    /**
+     * Fichier contenant les requêtes sparql
+     */
+    private final String queryFile;
+    private final DictionnayParser dictionnayParser;
 
 
     public RequestParser(String queryFile, DictionnayParser dictionnayParser) {
@@ -53,29 +39,31 @@ public class RequestParser {
     public void processAQuery(ParsedQuery query) {
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 
-        int rightApproach=this.getMissingVariable(patterns.get(0));
-        int a = 0;
+        int rightApproach = this.getMissingVariable(patterns.get(0));
+        int a ;
         for (int i = 0; i < patterns.size(); i++) {
-            a=0;
-            System.out.println(rightApproach);
+            a = 0;
+            switch (rightApproach) {
+                case 1:
+                    a = getObjectAnswers(patterns.get(i));
+                    break;
 
-            switch (rightApproach){
-
-                case 1:a= getObjectAnswers(patterns.get(i));
-
-                case 2:a =getSubjectAnswers(patterns.get(i));
+                case 2:
+                    a = getSubjectAnswers(patterns.get(i));
+                    break;
                 case 3:
-                default://error
+                     a=getPredicateAnswer(patterns.get(i));
+                    break;
+
             }
-            System.err.println("system returner" +a);
-            if(a==-1){
+            if (a == -1) {
                 reponse.clear();
                 break;
             }
 
 
         }
-        Set<Integer> listfinale= new HashSet<>(reponse);
+        Set<Integer> listfinale = new HashSet<>(reponse);
         reponse.clear();
         reponse.addAll(listfinale);
         for (int i = 0; i < reponse.size(); i++) {
@@ -85,7 +73,7 @@ public class RequestParser {
 
     }
 
-    public void parseQueries() throws FileNotFoundException, IOException {
+    public void parseQueries() throws IOException {
         /**
          * Try-with-resources
          *
@@ -111,7 +99,6 @@ public class RequestParser {
                     ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
                     //System.err.println(query.getTupleExpr());
 
-
                     processAQuery(query); // Traitement de la requête, à adapter/réécrire pour votre programme
 
                     queryString.setLength(0); // Reset le buffer de la requête en chaine vide
@@ -125,64 +112,102 @@ public class RequestParser {
      * le but est de bien determiner le choix de la structure hexastore à utiliser
      *
      */
-    public int getMissingVariable(StatementPattern statementPattern){
-        if(statementPattern.getObjectVar().getValue()==null){
-            System.out.println("object needed");
+    public int getMissingVariable(StatementPattern statementPattern) {
+        System.out.println(statementPattern.getSubjectVar().getValue()+" "+statementPattern.getPredicateVar().getValue()+" "+statementPattern.getObjectVar().getValue());
+        if (statementPattern.getObjectVar().getValue() == null) {
             return 1;
-        } else if (statementPattern.getSubjectVar().getValue()==null) {
-            System.out.println("Subject needed");
+        } else if (statementPattern.getSubjectVar().getValue() == null) {
             return 2;
-
-        } else if (statementPattern.getPredicateVar().getValue()==null) {
-            System.out.println("Predicate needed");
+        } else if (statementPattern.getPredicateVar().getValue() == null) {
             return 3;
         }
-        return 0 ;
+        return 0;
 
     }
 
 
-    public int getObjectAnswers(StatementPattern statementPattern){
-        String sbj = statementPattern.getObjectVar().getValue().toString();
+    public int getObjectAnswers(StatementPattern statementPattern) {
+        String sbj = statementPattern.getSubjectVar().getValue().toString();
         String prd = statementPattern.getPredicateVar().getValue().toString();
         Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
         Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-        if (this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject) != null){
-            if (reponse.isEmpty()){
-                reponse.addAll(this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject));
-            }else {
-                reponse.retainAll(this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject));
+        List<Integer> responses= this.getSubjectAnswersFromSmallestMap(subject,predicate);
+
+        if (responses != null) {
+            if (reponse.isEmpty()) {
+                reponse.addAll(responses);
+            } else {
+                reponse.retainAll(responses);
             }
             return 1;
-        }else {
+        } else {
             return -1;
         }
     }
-    public int getSubjectAnswers(StatementPattern statementPattern){
 
+    public int getPredicateAnswer(StatementPattern statementPattern) {
+        String sbj = statementPattern.getSubjectVar().getValue().toString();
+        String obj = statementPattern.getObjectVar().getValue().toString();
+        Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
+        Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
+        List<Integer> responses= this.getPredicateAnswersFromSmallestMap(subject,object);
+        if (responses != null) {
+            if (reponse.isEmpty()) {
+                reponse.addAll(responses);
+            } else {
+                reponse.retainAll(responses);
+            }
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    public int getSubjectAnswers(StatementPattern statementPattern) {
         String obj = statementPattern.getObjectVar().getValue().toString();
         String prd = statementPattern.getPredicateVar().getValue().toString();
         Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
         Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-        System.out.printf("response for request" +this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object)  );
-
-        if (this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate) != null){
-            if (reponse.isEmpty()){
-                reponse.addAll(this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate));
+        List<Integer> responses= this.getSubjectAnswersFromSmallestMap(object,predicate);
+        if (responses!= null) {
+            if (reponse.isEmpty()) {
+                reponse.addAll(responses);
                 System.err.println(1);
                 return 1;
-            }else {
-                boolean abc =reponse.retainAll(this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate));
-                System.err.println(2);
-                if (reponse.isEmpty()){
+            } else {
+                reponse.retainAll(responses);
+                if (reponse.isEmpty()) {
                     return -1;
                 }
                 return 1;
             }
-
-        }else {
+        } else {
             return -1;
         }
     }
 
+
+    public List<Integer> getObjectAnswersFromSmallestMap(int subject, int predicate){
+        if (this.dictionnayParser.getIndex().getSPOIndex().getHexastore().size() > this.dictionnayParser.getIndex().getPSOIndex().getHexastore().size()) {
+            return this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject);
+        } else {
+            return this.dictionnayParser.getIndex().getSPOIndex().getHexastore().get(subject).get(predicate);
+        }
+    }
+
+    public List<Integer> getSubjectAnswersFromSmallestMap(int object, int predicate){
+        if (this.dictionnayParser.getIndex().getOPSIndex().getHexastore().size() > this.dictionnayParser.getIndex().getPOSIndex().getHexastore().size()) {
+            return this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object);
+        } else {
+            return this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate);
+        }
+    }
+
+    public List<Integer> getPredicateAnswersFromSmallestMap(int subject, int object){
+        if (this.dictionnayParser.getIndex().getSPOIndex().getHexastore().size() > this.dictionnayParser.getIndex().getOSPIndex().getHexastore().size()) {
+            return this.dictionnayParser.getIndex().getSOPIndex().getHexastore().get(object).get(subject);
+        } else {
+            return this.dictionnayParser.getIndex().getSOPIndex().getHexastore().get(subject).get(object);
+        }
+    }
 }
