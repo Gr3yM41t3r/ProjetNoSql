@@ -38,7 +38,6 @@ public class RequestParser {
 
     public void processAQuery(ParsedQuery query) {
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
-
         int rightApproach = this.getMissingVariable(patterns.get(0));
         int a ;
         for (int i = 0; i < patterns.size(); i++) {
@@ -47,14 +46,12 @@ public class RequestParser {
                 case 1:
                     a = getObjectAnswers(patterns.get(i));
                     break;
-
                 case 2:
                     a = getSubjectAnswers(patterns.get(i));
                     break;
                 case 3:
                      a=getPredicateAnswer(patterns.get(i));
                     break;
-
             }
             if (a == -1) {
                 reponse.clear();
@@ -94,13 +91,10 @@ public class RequestParser {
                  */ {
                 String line = lineIterator.next();
                 queryString.append(line);
-
                 if (line.trim().endsWith("}")) {
                     ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
                     //System.err.println(query.getTupleExpr());
-
                     processAQuery(query); // Traitement de la requête, à adapter/réécrire pour votre programme
-
                     queryString.setLength(0); // Reset le buffer de la requête en chaine vide
                 }
             }
@@ -113,7 +107,6 @@ public class RequestParser {
      *
      */
     public int getMissingVariable(StatementPattern statementPattern) {
-        System.out.println(statementPattern.getSubjectVar().getValue()+" "+statementPattern.getPredicateVar().getValue()+" "+statementPattern.getObjectVar().getValue());
         if (statementPattern.getObjectVar().getValue() == null) {
             return 1;
         } else if (statementPattern.getSubjectVar().getValue() == null) {
@@ -131,7 +124,7 @@ public class RequestParser {
         String prd = statementPattern.getPredicateVar().getValue().toString();
         Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
         Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-        List<Integer> responses= this.getSubjectAnswersFromSmallestMap(subject,predicate);
+        List<Integer> responses= this.getObjectAnswersFromSmallestMap(subject,predicate);
 
         if (responses != null) {
             if (reponse.isEmpty()) {
