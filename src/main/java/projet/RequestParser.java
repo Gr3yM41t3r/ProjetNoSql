@@ -1,14 +1,18 @@
 package projet;
 
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Str;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -24,19 +28,28 @@ public class RequestParser {
      */
     private final String dataFile = workingDir + "sample_data.nt";
     List<Integer> reponse = new ArrayList<>();
-    /**
-     * Fichier contenant les requêtes sparql
-     */
+
     private final String queryFile;
     private final DictionnayParser dictionnayParser;
+    private final String outputFolder;
+    private final File outputFile;
+    private  Jena jena;
 
 
-    public RequestParser(String queryFile, DictionnayParser dictionnayParser) {
-        this.queryFile = workingDir + queryFile;
+
+    public RequestParser(String queryFile, DictionnayParser dictionnayParser,String of,Boolean bool) throws IOException {
+        this.queryFile =  queryFile;
         this.dictionnayParser = dictionnayParser;
+        this.outputFolder=of;
+        outputFile = new File(outputFolder+"/self_solutions.txt");
+        outputFile.createNewFile();
+        if (bool){
+             jena = new Jena(dictionnayParser.getDataFile(),queryFile,of);
+            jena.loadModel();
+        }
     }
 
-    public void processAQuery(ParsedQuery query) {
+    public void processAQuery(ParsedQuery query,String querynotrParsed) throws IOException {
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
         int rightApproach = this.getMissingVariable(patterns.get(0));
         int a ;
@@ -57,18 +70,25 @@ public class RequestParser {
                 reponse.clear();
                 break;
             }
-
-
         }
         Set<Integer> listfinale = new HashSet<>(reponse);
+        Set<String> reponses = new HashSet<>();
         reponse.clear();
         reponse.addAll(listfinale);
+        System.out.println("---------------------------");
         for (int i = 0; i < reponse.size(); i++) {
             System.out.println(this.dictionnayParser.getDictionnaire().get(reponse.get(i)));
+            reponses.add(this.dictionnayParser.getDictionnaire().get(reponse.get(i)));
+            Files.writeString(outputFile.toPath(), this.dictionnayParser.getDictionnaire().get(reponse.get(i))+"\n", StandardCharsets.UTF_8, StandardOpenOption.APPEND);
         }
+        if (jena.processAQuery(querynotrParsed).containsAll(reponses)){
+            System.out.println(true);
+        }
+        reponse.clear();
 
 
     }
+
 
     public void parseQueries() throws IOException {
         /**
@@ -94,7 +114,7 @@ public class RequestParser {
                 if (line.trim().endsWith("}")) {
                     ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
                     //System.err.println(query.getTupleExpr());
-                    processAQuery(query); // Traitement de la requête, à adapter/réécrire pour votre programme
+                    processAQuery(query,queryString.toString()); // Traitement de la requête, à adapter/réécrire pour votre programme
                     queryString.setLength(0); // Reset le buffer de la requête en chaine vide
                 }
             }

@@ -19,7 +19,7 @@ public class test {
     public static void main(String[] args) throws IOException {
         String data ="/home/e20210000431/Bureau/qengine-master/data/100K.nt";
         String queries ="/home/e20210000431/Bureau/qengine-master/data/sample_query.queryset";
-        String output ="";
+        String output ="/home/e20210000431/Bureau/qengine-master/data";
         Jena jena = new Jena(data,queries,output);
         jena.loadModel();
         jena.parseQueries();

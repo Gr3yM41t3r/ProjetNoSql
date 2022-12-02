@@ -16,12 +16,3 @@ SELECT ?v0 WHERE {
 
 SELECT ?v0 WHERE {
 	?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country84> . }
-
-SELECT ?v0 WHERE {
-	?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country135> . }
-
-SELECT ?v0 WHERE {
-	?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country22> . }
-
-SELECT ?v0 WHERE {
-	?v0 <http://schema.org/eligibleRegion> <http://db.uwaterloo.ca/~galuc/wsdbm/Country10> . }

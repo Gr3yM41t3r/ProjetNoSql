@@ -36,12 +36,13 @@ public class DictionnayParser {
         this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler = new RDFHandler();
-        this.dataFile = workingDir + df;
+        this.dataFile =  df;
     }
 
 
     public void parseStatementList() throws IOException {
-        this.statementsList = rdfHandler.parseData(dataFile);
+        System.out.println(this.dataFile);
+        this.statementsList = rdfHandler.parseData("/home/e20210000431/Bureau/qengine-master/data/100K.nt");
     }
 
     //-----------------------Dictionnary Utils -----------------------------------
