@@ -1,7 +1,2 @@
 ---------------------------
 SELECT ?v0 WHERE {	<http://db.uwaterloo.ca/~galuc/wsdbm/Offer195> <http://schema.org/eligibleRegion> ?v0 . }
-http://db.uwaterloo.ca/~galuc/wsdbm/Country33
-http://db.uwaterloo.ca/~galuc/wsdbm/Country67
-http://db.uwaterloo.ca/~galuc/wsdbm/Country1
-http://db.uwaterloo.ca/~galuc/wsdbm/Country165
-http://db.uwaterloo.ca/~galuc/wsdbm/Country137

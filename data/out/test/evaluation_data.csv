@@ -1,2 +1,2 @@
 temps_creation_dico (ms),nombre_index,temps_total_requetes (ms),temps_total (ms),temps_creation_index (ms),temps_total_eval_workload (ms),nombre_triples,nombre_requetes,temps_lecture_données (ms),temps_lecture_requetes (ms),
-248,34134,0,2556,317,241,107338,1,576,241,
+328,34134,0,2508,315,195,107338,1,592,195,

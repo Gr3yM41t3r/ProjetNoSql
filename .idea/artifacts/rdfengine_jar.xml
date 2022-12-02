@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
-  <artifact name="ProjetNoSql:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/ProjetNoSql_jar</output-path>
+  <artifact name="rdfengine:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/rdfengine_jar</output-path>
     <root id="root">
       <element id="archive" name="ProjetNoSql.jar">
         <element id="module-output" name="ProjetNoSql" />
