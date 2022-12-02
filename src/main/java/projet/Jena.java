@@ -23,30 +23,24 @@ public class Jena {
 
     private Model model;
 
-    private File outputFile;
-    private PrintWriter oFile;
 
     public Jena(String data, String queries, String output) throws IOException {
         this.data = data;
         this.queries = queries;
         this.outputFolder = output;
         this.model = null;
-        outputFile = new File(outputFolder+"/jena_solutions.txt");
-        outputFile.createNewFile(); // if file already exists will do nothing
+
 
     }
 
     public void parseQueries() throws IOException {
         try (Stream<String> lineStream = Files.lines(Paths.get(this.queries))) {
-            SPARQLParser sparqlParser = new SPARQLParser();
             Iterator<String> lineIterator = lineStream.iterator();
             StringBuilder queryString = new StringBuilder();
             while (lineIterator.hasNext()) {
                 String line = lineIterator.next();
                 queryString.append(line);
                 if (line.trim().endsWith("}")) {
-                    //System.err.println(query.getTupleExpr());
-                    System.out.println("amine "+queryString);
                     processAQuery(queryString.toString()); // Traitement de la requête, à adapter/réécrire pour votre programme
                     queryString.setLength(0); // Reset le buffer de la requête en chaine vide
                 }
@@ -59,10 +53,9 @@ public class Jena {
 
     }
 
-    public Set<String> processAQuery(String quer) throws IOException {
+    public Set<String> processAQuery(String queryString) throws IOException {
         Set<String> reponse = new HashSet<>();
-        System.err.println("wa3  "+quer);
-        Query query = QueryFactory.create(quer);
+        Query query = QueryFactory.create(queryString);
         QueryExecution queryExecution = QueryExecutionFactory.create(query, model);
         ResultSet set =queryExecution.execSelect();
         while (set.hasNext()){

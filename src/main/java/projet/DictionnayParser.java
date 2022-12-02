@@ -13,48 +13,38 @@ import java.util.Map;
 
 public class DictionnayParser {
 
-    private final String baseURI = null;
-    /**
-     * Votre répertoire de travail où vont se trouver les fichiers à lire
-     */
-    private final String workingDir = "data/";
+
     private final Map<Integer, String> dictionnaire;
     private final Map<String, Integer> dictionnaireInverse;
     private final RDFHandler rdfHandler;
     private final HexaStore index = new HexaStore();
-    /**
-     * Fichier contenant les requêtes sparql
-     */
-    private final String queryFile = workingDir + "sample_query.queryset";
-    /**
-     * Fichier contenant des données rdf
-     */
     private final String dataFile;
     private List<Statement> statementsList;
 
-    public DictionnayParser(String df) {
+    private Evaluation timeBenchmark;
+
+    public DictionnayParser(String df, Evaluation timeBenchmark) {
         this.dictionnaire = new HashMap<>();
         this.dictionnaireInverse = new HashMap<>();
         this.rdfHandler = new RDFHandler();
         this.dataFile =  df;
+        this.timeBenchmark=timeBenchmark;
+
     }
 
 
     public void parseStatementList() throws IOException {
-        System.out.println(this.dataFile);
-        this.statementsList = rdfHandler.parseData("/home/e20210000431/Bureau/qengine-master/data/100K.nt");
+        timeBenchmark.startTimer();
+        this.statementsList = rdfHandler.parseData(this.dataFile);
+        timeBenchmark.addBenchmarkData("nombre_triples",String.valueOf(this.statementsList.size()));
+        timeBenchmark.addBenchmarkData("temps_lecture_données (ms)", timeBenchmark.endTimer());
     }
 
     //-----------------------Dictionnary Utils -----------------------------------
 
-    /*****
-     * TODO: Use AtomicInteger
-     * inster of integer to autoIncrement key
-     * @throws IOException
-     *
-     */
+
     public void createDictionnay() throws IOException {
-        long startTime = System.nanoTime();
+        timeBenchmark.startTimer();
 
         if (this.statementsList == null) {
             System.err.println("List null: vous devez initialiser la liste: parseStatementList()");
@@ -84,10 +74,8 @@ public class DictionnayParser {
 
         }
         createDictionnaireInverser();
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);
+        timeBenchmark.addBenchmarkData("temps_creation_dico (ms)", timeBenchmark.endTimer().toString());
 
-        System.out.println("Parsing 100%  |  done in : " +duration/1_000_000_000+"s  "+duration/1_000_000+"ms");
     }
 
 
@@ -98,18 +86,6 @@ public class DictionnayParser {
 
     }
 
-    public void printDictionnary() {
-        for (Integer integer : dictionnaire.keySet()) {
-            String key = integer.toString();
-            String value = dictionnaire.get(integer);
-            System.out.println("(" + key + "," + value + ")");
-        }
-        for (String str : dictionnaireInverse.keySet()) {
-            String key = str;
-            String value = dictionnaireInverse.get(str).toString();
-            System.out.println("(" + key + "," + value + ")");
-        }
-    }
 
     public void saveDictionnary(String filePath) throws IOException {
         File keyValueDict = new File(filePath + "/dict_key_value.txt");
@@ -137,6 +113,7 @@ public class DictionnayParser {
     //-----------------------Indexes Utils -----------------------------------
 
     public void createIndexes(List<Statement> statementList) {
+        timeBenchmark.startTimer();
         if (this.statementsList == null) {
             System.err.println("List null: vous devez initialiser la liste: parseStatementList()");
             return;
@@ -155,12 +132,19 @@ public class DictionnayParser {
             this.index.getPOSIndex().add(predicate, object, subject);
             this.index.getOPSIndex().add(object, predicate, subject);
         }
+        timeBenchmark.addBenchmarkData("temps_creation_index (ms)", timeBenchmark.endTimer().toString());
+        timeBenchmark.addBenchmarkData("nombre_index", String.valueOf(this.index.getSPOIndex().getHexastore().size()+
+                this.index.getPSOIndex().getHexastore().size()+
+                this.index.getOSPIndex().getHexastore().size()+
+                this.index.getSOPIndex().getHexastore().size()+
+                this.index.getPOSIndex().getHexastore().size()+
+                this.index.getOPSIndex().getHexastore().size())
+        );
+
     }
 
 
     public void saveIndexes(String filePath) throws IOException {
-        String line = "";
-        List<Statement> statementList = rdfHandler.parseData(dataFile);
         try {
             File spo = new File(filePath + "/spo");
             File pso = new File(filePath + "/pso");

@@ -1,3 +1,37 @@
 Manifest-Version: 1.0
 Main-Class: projet.Main
+Class-Path: jackson-databind-2.11.4.jar jena-core-3.9.0.jar junit-jupite
+ r-engine-5.7.2.jar rdf4j-rio-nquads-3.7.3.jar javax.activation-api-1.2.
+ 0.jar rdf4j-queryresultio-sparqljson-3.7.3.jar libthrift-0.10.0.jar com
+ mons-csv-1.5.jar commons-beanutils-1.9.3.jar rdf4j-repository-http-3.7.
+ 3.jar rdf4j-queryalgebra-model-3.7.3.jar jaxb-api-2.3.1.jar rdf4j-rio-n
+ 3-3.7.3.jar rdf4j-rio-trig-3.7.3.jar guava-30.1.1-jre.jar jcl-over-slf4
+ j-1.7.31.jar rdf4j-queryparser-api-3.7.3.jar collection-0.7.jar httpcor
+ e-4.4.13.jar rdf4j-repository-sparql-3.7.3.jar rdf4j-query-3.7.3.jar je
+ na-dboe-base-3.9.0.jar apiguardian-api-1.1.2.jar rdf4j-model-api-3.7.3.
+ jar jena-tdb-3.9.0.jar junit-jupiter-5.9.0.jar commons-compress-1.17.ja
+ r rdf4j-rio-api-3.7.3.jar rdf4j-queryresultio-binary-3.7.3.jar jena-arq
+ -3.9.0.jar commons-io-2.8.0.jar junit-jupiter-params-5.7.2.jar rdf4j-ri
+ o-rdfxml-3.7.3.jar jena-dboe-trans-data-3.9.0.jar rdf4j-queryparser-ser
+ ql-3.7.3.jar rdf4j-queryresultio-text-3.7.3.jar jena-tdb2-3.9.0.jar htt
+ pclient-4.5.13.jar commons-collections-3.2.2.jar rdf4j-rio-ntriples-3.7
+ .3.jar listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar r
+ df4j-http-protocol-3.7.3.jar rdf4j-queryresultio-sparqlxml-3.7.3.jar rd
+ f4j-util-3.7.3.jar rdf4j-rio-binary-3.7.3.jar rdf4j-queryresultio-api-3
+ .7.3.jar jena-iri-3.9.0.jar junit-platform-commons-1.9.0.jar commons-te
+ xt-1.9.jar junit-jupiter-api-5.9.0.jar rdf4j-sparqlbuilder-3.7.3.jar rd
+ f4j-model-3.7.3.jar jena-shaded-guava-3.9.0.jar rdf4j-repository-contex
+ taware-3.7.3.jar jena-dboe-transaction-3.9.0.jar slf4j-api-1.7.31.jar c
+ ommons-collections4-4.2.jar rdf4j-queryparser-sparql-3.7.3.jar failurea
+ ccess-1.0.1.jar jena-cmds-3.9.0.jar rdf4j-rio-rdfjson-3.7.3.jar rdf4j-q
+ ueryrender-3.7.3.jar jena-rdfconnection-3.9.0.jar rdf4j-repository-even
+ t-3.7.3.jar rdf4j-rio-datatypes-3.7.3.jar jena-dboe-index-3.9.0.jar com
+ mons-codec-1.13.jar jackson-core-2.11.4.jar httpclient-cache-4.5.13.jar
+  junit-platform-engine-1.7.2.jar rdf4j-model-vocabulary-3.7.3.jar rdf4j
+ -rio-trix-3.7.3.jar opentest4j-1.2.0.jar rdf4j-http-client-3.7.3.jar rd
+ f4j-rio-jsonld-3.7.3.jar opencsv-4.6.jar rdf4j-rio-languages-3.7.3.jar 
+ slf4j-log4j12-1.7.25.jar log4j-1.2.17.jar rdf4j-repository-api-3.7.3.ja
+ r jackson-annotations-2.11.4.jar rdf4j-rio-turtle-3.7.3.jar commons-cli
+ -1.4.jar rdf4j-repository-manager-3.7.3.jar jsonld-java-0.13.3.jar jena
+ -base-3.9.0.jar commons-lang3-3.12.0.jar
 

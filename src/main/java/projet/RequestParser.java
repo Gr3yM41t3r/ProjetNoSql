@@ -1,58 +1,54 @@
 package projet;
 
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
-import org.eclipse.rdf4j.query.algebra.Str;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Stream;
 
 public class RequestParser {
-    static final String baseURI = null;
 
-    /**
-     * Votre répertoire de travail où vont se trouver les fichiers à lire
-     */
-    private final String workingDir = "data/";
-    /**
-     * Fichier contenant des données rdf
-     */
-    private final String dataFile = workingDir + "sample_data.nt";
-    List<Integer> reponse = new ArrayList<>();
 
     private final String queryFile;
     private final DictionnayParser dictionnayParser;
-    private final String outputFolder;
-    private final File outputFile;
-    private  Jena jena;
+    private String outputPath;
+    private final List<Integer> reponse = new ArrayList<>();
+    private Jena jena;
+    private Evaluation timeBenchmark;
+
+    private long totalqueryTime= 0;
+
+    private boolean exportQueryResult;
+    private boolean exportJenaResult;
 
 
-
-    public RequestParser(String queryFile, DictionnayParser dictionnayParser,String of,Boolean bool) throws IOException {
-        this.queryFile =  queryFile;
+    public RequestParser(String queryFile, DictionnayParser dictionnayParser, String output, Boolean compareToJena,Boolean exportQueryResult,Boolean exportJenaResult, Evaluation timeBenchmark) throws IOException {
+        this.queryFile = queryFile;
         this.dictionnayParser = dictionnayParser;
-        this.outputFolder=of;
-        outputFile = new File(outputFolder+"/self_solutions.txt");
-        outputFile.createNewFile();
-        if (bool){
-             jena = new Jena(dictionnayParser.getDataFile(),queryFile,of);
+
+        this.outputPath=output;
+        this.timeBenchmark=timeBenchmark;
+        this.exportQueryResult=exportQueryResult;
+        this.exportJenaResult=exportJenaResult;
+        if (compareToJena) {
+            jena = new Jena(dictionnayParser.getDataFile(), queryFile, output);
             jena.loadModel();
         }
     }
 
-    public void processAQuery(ParsedQuery query,String querynotrParsed) throws IOException {
+    public void processAQuery(ParsedQuery query, String querynotrParsed,PrintWriter resultOutput,PrintWriter jenaResultOutput) throws IOException {
+        long startTime = System.currentTimeMillis();
         List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
         int rightApproach = this.getMissingVariable(patterns.get(0));
-        int a ;
+        int a;
         for (int i = 0; i < patterns.size(); i++) {
             a = 0;
             switch (rightApproach) {
@@ -63,7 +59,7 @@ public class RequestParser {
                     a = getSubjectAnswers(patterns.get(i));
                     break;
                 case 3:
-                     a=getPredicateAnswer(patterns.get(i));
+                    a = getPredicateAnswer(patterns.get(i));
                     break;
             }
             if (a == -1) {
@@ -71,61 +67,97 @@ public class RequestParser {
                 break;
             }
         }
-        Set<Integer> listfinale = new HashSet<>(reponse);
-        Set<String> reponses = new HashSet<>();
-        reponse.clear();
-        reponse.addAll(listfinale);
+        Set<String> reponseSet = new HashSet<>();
         System.out.println("---------------------------");
-        for (int i = 0; i < reponse.size(); i++) {
-            System.out.println(this.dictionnayParser.getDictionnaire().get(reponse.get(i)));
-            reponses.add(this.dictionnayParser.getDictionnaire().get(reponse.get(i)));
-            Files.writeString(outputFile.toPath(), this.dictionnayParser.getDictionnaire().get(reponse.get(i))+"\n", StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+
+        resultOutput.println("---------------------------");
+        resultOutput.println(querynotrParsed);
+        for (Integer integer : reponse) {
+            reponseSet.add(this.dictionnayParser.getDictionnaire().get(integer));
+            if (exportQueryResult){
+                resultOutput.println(this.dictionnayParser.getDictionnaire().get(integer).toString());
+            }
+
         }
-        if (jena.processAQuery(querynotrParsed).containsAll(reponses)){
-            System.out.println(true);
+
+
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+        totalqueryTime+=duration;
+        System.out.println("query time : " +duration+" (ms)");
+        if(jena!=null){
+            compareResultsToJena(querynotrParsed,reponseSet,jenaResultOutput);
         }
         reponse.clear();
 
 
     }
 
+    public void compareResultsToJena(String queryString,Set<String> answerSet,PrintWriter jenaResultOutput) throws IOException {
+        Set<String> jenasResponse = jena.processAQuery(queryString);
+        jenaResultOutput.println("---------------------------");
+        jenaResultOutput.println(queryString);
+        if (jenasResponse.equals(answerSet)) {
+            System.out.println("Answers match jena's answers, to save jena's results add -export_jena_resulats to arguments");
+            if (exportJenaResult){
+                for (String result:jenasResponse) {
+                    jenaResultOutput.println(result);
+                }
+            }
+        }else {
+            System.out.println("Results did not match on query "+queryString);
+        }
+    }
 
-    public void parseQueries() throws IOException {
-        /**
-         * Try-with-resources
-         *
-         * @see <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">Try-with-resources</a>
-         */
-        /*
-         * On utilise un stream pour lire les lignes une par une, sans avoir à toutes les stocker
-         * entièrement dans une collection.
-         */
+
+    public void parseQueries(boolean shuffle,Integer warmPercentage) throws IOException {
+        File resultfile = new File(this.outputPath+"/query_result.txt");
+        PrintWriter outFile = new PrintWriter(new FileOutputStream(resultfile, false));
+        File jenaReslatFile = new File(this.outputPath+"/jena_query_result.txt");
+        PrintWriter jenaOutFile = new PrintWriter(new FileOutputStream(jenaReslatFile, false));
+        ArrayList<String> querylist = new ArrayList<>();
         try (Stream<String> lineStream = Files.lines(Paths.get(this.queryFile))) {
             SPARQLParser sparqlParser = new SPARQLParser();
             Iterator<String> lineIterator = lineStream.iterator();
             StringBuilder queryString = new StringBuilder();
+            long startTime =System.currentTimeMillis();
             while (lineIterator.hasNext())
-                /*
-                 * On stocke plusieurs lignes jusqu'à ce que l'une d'entre elles se termine par un '}'
-                 * On considère alors que c'est la fin d'une requête
-                 */ {
+                {
                 String line = lineIterator.next();
                 queryString.append(line);
                 if (line.trim().endsWith("}")) {
-                    ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
-                    //System.err.println(query.getTupleExpr());
-                    processAQuery(query,queryString.toString()); // Traitement de la requête, à adapter/réécrire pour votre programme
-                    queryString.setLength(0); // Reset le buffer de la requête en chaine vide
+                    querylist.add(queryString.toString());
+                    queryString.setLength(0);
                 }
             }
+            if (shuffle||warmPercentage>0){
+                System.out.println("Collection shuffeled");
+                Collections.shuffle(querylist);
+            }
+            if(warmPercentage>0){
+                System.out.println("warming up on "+warmPercentage+"% ("+(warmPercentage*querylist.size())/100+" triplets) of dataset");
+                for (int i =0; i< (warmPercentage*querylist.size())/100;i++) {
+                    ParsedQuery parsedQuery = sparqlParser.parseQuery(querylist.get(i), null);
+                    System.out.println();
+                    processAQuery(parsedQuery, querylist.get(i),outFile,jenaOutFile);
+                }
+            }else {
+                for (int i =0; i<querylist.size();i++) {
+                    ParsedQuery parsedQuery = sparqlParser.parseQuery(querylist.get(i), null);
+                    processAQuery(parsedQuery, querylist.get(i),outFile,jenaOutFile);
+                }
+            }
+
+            long endTime=System.currentTimeMillis();
+            timeBenchmark.addBenchmarkData("temps_total_eval_workload (ms)", String.valueOf(endTime-startTime));
+            timeBenchmark.addBenchmarkData("temps_lecture_requetes (ms)",String.valueOf( (endTime-startTime)-totalqueryTime));
+            timeBenchmark.addBenchmarkData("temps_total_requetes (ms)",String.valueOf( totalqueryTime));
+            timeBenchmark.addBenchmarkData("nombre_requetes",String.valueOf(querylist.size()));
         }
+        outFile.close();
+        jenaOutFile.close();
     }
 
-    /***
-     * cette méthode detecte automatique la variable inconnue v0 (elle peut être soit le subject, predicate ou object )
-     * le but est de bien determiner le choix de la structure hexastore à utiliser
-     *
-     */
     public int getMissingVariable(StatementPattern statementPattern) {
         if (statementPattern.getObjectVar().getValue() == null) {
             return 1;
@@ -135,17 +167,19 @@ public class RequestParser {
             return 3;
         }
         return 0;
-
     }
 
 
     public int getObjectAnswers(StatementPattern statementPattern) {
         String sbj = statementPattern.getSubjectVar().getValue().toString();
         String prd = statementPattern.getPredicateVar().getValue().toString();
+
         Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
         Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-        List<Integer> responses= this.getObjectAnswersFromSmallestMap(subject,predicate);
-
+        if(predicate==null ||subject==null){
+            return -1;
+        }
+        List<Integer> responses = this.getObjectAnswersFromSmallestMap(subject, predicate);
         if (responses != null) {
             if (reponse.isEmpty()) {
                 reponse.addAll(responses);
@@ -163,7 +197,10 @@ public class RequestParser {
         String obj = statementPattern.getObjectVar().getValue().toString();
         Integer subject = this.dictionnayParser.getDictionnaireInverse().get(sbj);
         Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
-        List<Integer> responses= this.getPredicateAnswersFromSmallestMap(subject,object);
+        if(object==null ||subject==null){
+            return -1;
+        }
+        List<Integer> responses = this.getPredicateAnswersFromSmallestMap(subject, object);
         if (responses != null) {
             if (reponse.isEmpty()) {
                 reponse.addAll(responses);
@@ -181,11 +218,13 @@ public class RequestParser {
         String prd = statementPattern.getPredicateVar().getValue().toString();
         Integer object = this.dictionnayParser.getDictionnaireInverse().get(obj);
         Integer predicate = this.dictionnayParser.getDictionnaireInverse().get(prd);
-        List<Integer> responses= this.getSubjectAnswersFromSmallestMap(object,predicate);
-        if (responses!= null) {
+        if(object==null ||predicate==null){
+            return -1;
+        }
+        List<Integer> responses = this.getSubjectAnswersFromSmallestMap(object, predicate);
+        if (responses != null) {
             if (reponse.isEmpty()) {
                 reponse.addAll(responses);
-                System.err.println(1);
                 return 1;
             } else {
                 reponse.retainAll(responses);
@@ -200,7 +239,7 @@ public class RequestParser {
     }
 
 
-    public List<Integer> getObjectAnswersFromSmallestMap(int subject, int predicate){
+    public List<Integer> getObjectAnswersFromSmallestMap(int subject, int predicate) {
         if (this.dictionnayParser.getIndex().getSPOIndex().getHexastore().size() > this.dictionnayParser.getIndex().getPSOIndex().getHexastore().size()) {
             return this.dictionnayParser.getIndex().getPSOIndex().getHexastore().get(predicate).get(subject);
         } else {
@@ -208,15 +247,16 @@ public class RequestParser {
         }
     }
 
-    public List<Integer> getSubjectAnswersFromSmallestMap(int object, int predicate){
+    public List<Integer> getSubjectAnswersFromSmallestMap(int object, int predicate) {
         if (this.dictionnayParser.getIndex().getOPSIndex().getHexastore().size() > this.dictionnayParser.getIndex().getPOSIndex().getHexastore().size()) {
             return this.dictionnayParser.getIndex().getPOSIndex().getHexastore().get(predicate).get(object);
+
         } else {
             return this.dictionnayParser.getIndex().getOPSIndex().getHexastore().get(object).get(predicate);
         }
     }
 
-    public List<Integer> getPredicateAnswersFromSmallestMap(int subject, int object){
+    public List<Integer> getPredicateAnswersFromSmallestMap(int subject, int object) {
         if (this.dictionnayParser.getIndex().getSPOIndex().getHexastore().size() > this.dictionnayParser.getIndex().getOSPIndex().getHexastore().size()) {
             return this.dictionnayParser.getIndex().getSOPIndex().getHexastore().get(object).get(subject);
         } else {
