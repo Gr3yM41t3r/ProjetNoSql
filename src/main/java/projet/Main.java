@@ -105,7 +105,8 @@ public class Main {
         dictionnayParser.createDictionnay();
         dictionnayParser.createIndexes(dictionnayParser.getStatementsList());
         RequestParser requestParser = new RequestParser(queriesfile, dictionnayParser, outputfile, jenaCheck,saveResulats,saveJenaResulats, evaluationData);
-        requestParser.parseAndGetEmptyQueries();
+        //requestParser.parseAndGetEmptyQueries();
+        requestParser.parseAndgetDuplicateQueries();
         /*long endTime = System.currentTimeMillis();
         evaluationData.addBenchmarkData("temps_total (ms)", String.valueOf(endTime - startTime));
         File file = new File(outputfile + "/evaluation_data.csv");

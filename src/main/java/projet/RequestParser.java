@@ -1,6 +1,7 @@
 package projet;
 
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Str;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
@@ -265,20 +266,22 @@ public class RequestParser {
                     }
                 }
                 int duplicate=0;
+                Map<String,Integer> duplicateCounter = new HashMap<>();
                 for (int i = 0; i < querylist.size(); i++) {
-
-                    if (Collections.frequency(querylist, querylist.get(i))> 1) {
-                        duplicate++;
+                    duplicateCounter.put(querylist.get(i),Collections.frequency(querylist, querylist.get(i)));
+                }
+                System.out.println("size "+duplicateCounter.size());
+                int count = 0;
+                for(String key : duplicateCounter.keySet()) {
+                    if(duplicateCounter.get(key) == value) {
+                        count++;
                     }
                 }
 
             }
         }
         emptyQueriesOutPutFile.close();
-        int totalquerie = queriesWithAnswer+queriesWithoutAnswer;
-        System.out.println(totalquerie);
-        System.out.println(queriesWithoutAnswer);
-        System.out.println((queriesWithoutAnswer*100)/totalquerie);
+
         System.out.println("duplicate :" +1);
 
 
