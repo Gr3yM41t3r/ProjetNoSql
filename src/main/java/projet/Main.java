@@ -105,11 +105,14 @@ public class Main {
         dictionnayParser.createDictionnay();
         dictionnayParser.createIndexes(dictionnayParser.getStatementsList());
         RequestParser requestParser = new RequestParser(queriesfile, dictionnayParser, outputfile, jenaCheck,saveResulats,saveJenaResulats, evaluationData);
-        requestParser.parseQueries(shuffle,warmPercentage);
-        long endTime = System.currentTimeMillis();
+        requestParser.parseAndGetEmptyQueries();
+        /*long endTime = System.currentTimeMillis();
         evaluationData.addBenchmarkData("temps_total (ms)", String.valueOf(endTime - startTime));
         File file = new File(outputfile + "/evaluation_data.csv");
         PrintWriter outFile = new PrintWriter(file);
+
+        System.err.println("queries that matched jena' s: "+requestParser.getQueriesThatDidMatch());
+        System.err.println("queries that didnt matche jena' s: "+requestParser.getQueriesThatDidntMatch());
         for (String key : evaluationData.getData().keySet()) {
             outFile.print(key+",");
             System.out.println(key + " : " + evaluationData.getData().get(key) );
@@ -119,7 +122,7 @@ public class Main {
         for (String key : evaluationData.getData().keySet()) {
             outFile.print(evaluationData.getData().get(key)+",");
         }
-        outFile.close();
+        outFile.close();*/
 
     }
 }

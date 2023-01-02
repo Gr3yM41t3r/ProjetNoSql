@@ -1,2 +1,0 @@
----------------------------
-SELECT ?v0 WHERE {	<http://db.uwaterloo.ca/~galuc/wsdbm/Offer195> <http://schema.org/eligibleRegion> ?v0 . }

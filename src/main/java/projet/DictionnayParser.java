@@ -121,19 +121,23 @@ public class DictionnayParser {
         int predicate;
         int object;
         int subject;
-        for (Statement st : statementList) {
-            predicate = this.dictionnaireInverse.get(st.getPredicate().toString());
-            object = this.dictionnaireInverse.get(st.getObject().toString());
-            subject = this.dictionnaireInverse.get(st.getSubject().toString());
-            this.index.getSPOIndex().add(subject, predicate, object);
-            this.index.getPSOIndex().add(predicate, subject, object);
-            this.index.getOSPIndex().add(object, subject, predicate);
-            this.index.getSOPIndex().add(subject, object, predicate);
+        int totalSize = statementList.size();
+        for (int i =0;i<totalSize;i++) {
+            printProgress("creating Indexes ",((i+1)*100)/totalSize);
+            predicate = this.dictionnaireInverse.get(statementList.get(i).getPredicate().toString());
+            object = this.dictionnaireInverse.get(statementList.get(i).getObject().toString());
+            subject = this.dictionnaireInverse.get(statementList.get(i).getSubject().toString());
+            //this.index.getSPOIndex().add(subject, predicate, object);
+            //this.index.getPSOIndex().add(predicate, subject, object);
+            //this.index.getOSPIndex().add(object, subject, predicate);
+            //this.index.getSOPIndex().add(subject, object, predicate);
             this.index.getPOSIndex().add(predicate, object, subject);
             this.index.getOPSIndex().add(object, predicate, subject);
         }
+        System.out.println("   ");
         timeBenchmark.addBenchmarkData("temps_creation_index (ms)", timeBenchmark.endTimer().toString());
-        timeBenchmark.addBenchmarkData("nombre_index", String.valueOf(this.index.getSPOIndex().getHexastore().size()+
+        timeBenchmark.addBenchmarkData("nombre_index", String.valueOf(
+                this.index.getSPOIndex().getHexastore().size()+
                 this.index.getPSOIndex().getHexastore().size()+
                 this.index.getOSPIndex().getHexastore().size()+
                 this.index.getSOPIndex().getHexastore().size()+

@@ -20,8 +20,7 @@ public class Index {
     public void add(int i1, int i2, int i3) {
         if (hexastore.containsKey(i1)) {
             if (hexastore.get(i1).containsKey(i2)) {
-                if (hexastore.get(i1).get(i2).contains(i3)) {
-                } else {
+                if (!hexastore.get(i1).get(i2).contains(i3)) {
                     hexastore.get(i1).get(i2).add(i3);
                 }
             } else {
